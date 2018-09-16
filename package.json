@@ -1,0 +1,21 @@
+{
+  "name": "first-node",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js",
+    "watch": "nodemon --ignore ./data --watch . index.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "vue-scrollto": "^2.13.0",
+    "websocket": "^1.0.26",
+    "ws": "^6.0.0"
+  },
+  "directories": {
+    "test": "test"
+  },
+  "description": ""
+}

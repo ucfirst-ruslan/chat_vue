@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <base href="/">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/meyer-reset/2.0/reset.min.css">
+    <link rel="stylesheet" type="text/css" href="/css/style.css" />
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.5.17/dist/vue.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue-scrollto"></script>
+
+</head>
+
+<body>
+    <div class="container clearfix">
+        <div class="chat" id="chat">
+
+            <div class="chat-header clearfix">
+                <div v-cloak v-if="online" class="chat-about">
+                    <div class="chat-with">Welcome, {{nickName}}</div>
+                    <div class="chat-num-messages">Count messages in chat: {{ countMess }}</div>
+                </div>
+                <div v-else class="chat-about"><input type="text" v-model.lazy="newNick">
+                    <button @click="addNick">Login</button></div>
+
+
+                <div v-cloak v-if="online" class="chat-online">Chat online <br /><button @click="disconnect">Disconnect</button></div>
+                <div v-else class="chat-offline">Chat offline</div>
+            </div>
+
+            <div id="history" class="chat-history">
+                <ul>
+                    <li v-for="message in messages" v-bind:class="[ message.user != nickName ? classYou : '']">
+
+                        <div v-if="message.user != nickName" class="message-data align-right">
+                            <span class="message-data-time">{{ message.date }}</span> &nbsp; &nbsp;
+                            <span class="message-data-name">{{ message.user }}</span>
+                        </div>
+                        <div v-else class="message-data">
+                            <span class="message-data-name">{{ message.user }}</span>
+                            <span class="message-data-time">{{ message.date }}</span>
+                        </div>
+
+                        <div v-if="message.user == nickName" class="message my-message">
+                            {{ message.mess }}
+                        </div>
+                        <div v-else class="message other-message float-right">
+                            {{ message.mess }}
+                        </div>
+                    </li>
+                </ul>
+                <div id="bottom"></div>
+            </div>
+            <div v-if="online" class="chat-message clearfix">
+                <textarea v-model="newMessage" name="message-to-send" id="message-to-send" placeholder="Type your message" rows="3"></textarea>
+                <button @click="send">Send</button>
+            </div>
+        </div>
+    </div>
+
+
+
+
+    <script>
+        Vue.use(VueScrollTo);
+        Vue.filter('disabled', function(val) {
+            return val ? 'disabled' : ''
+        });
+        var chatApp = new Vue({
+            el: '#chat',
+            data() {
+                return {
+                    messages: [],
+                    newMessage: '',
+                    online: false,
+                    memory: {},
+                    nickName: '',
+                    newNick: '',
+                    classYou: 'clearfix'
+                }
+            },
+            created() {
+                //this.connect();
+            },
+            destroyed() {
+                this.ws.close();
+
+            },
+            computed: {
+                countMess() {
+                    return this.messages.length
+                }
+
+            },
+            updated() {
+                // var container = this.$el.querySelector("#bottom");
+                // container.scrollTop = container.scrollHeight;
+                // var div = document.getElementById("#bottom");
+                // div.scrollTop = div.scrollHeight - div.clientHeight;
+            },
+            methods: {
+                addNick() {
+                    this.nickName = this.newNick;
+                    this.connect();
+                    //console.log(this.nickName);
+                },
+                send() {
+                    let sendData = {
+                        user: this.nickName,
+                        mess: this.newMessage
+                    };
+                    sendData = JSON.stringify(sendData);
+                    this.ws.send(sendData);
+                    this.newMessage = '';
+
+                    var div = document.getElementById('chat');
+                    console.log(div.scrollHeight, ' | ', div.clientHeight)
+                    div.scrollTo = div.scrollHeight - div.clientHeight;
+                },
+                messageHandler(message) {
+                    try {
+                        //console.log(message)
+                        let data = JSON.parse(message.data);
+
+                        switch (data.type) {
+                            case 'messages':
+                                this.$set(this, 'messages', data.messages);
+                                break;
+                            case 'message':
+                                this.messages.push(data.message);
+                                break;
+                            case 'memoryInfo':
+                                this.$set(this, 'memory', data.data)
+                        }
+                    } catch (e) {
+                        console.error(e)
+                    }
+                },
+                disconnect() {
+                    this.ws.close();
+                    this.nickName = '';
+                    this.newNick = ''
+                },
+                connect() {
+                    if (this.online) return false;
+                    this.ws = new WebSocket('ws://localhost:5555');
+                    this.ws.addEventListener('open', () => {
+                        this.online = true
+                    });
+                    this.ws.addEventListener('close', () => {
+                        this.online = false
+                    });
+                    this.ws.addEventListener('error', (err) => {
+                        console.error(err)
+                    });
+                    this.ws.addEventListener('message', this.messageHandler.bind(this));
+                }
+            }
+
+        })
+    </script>
+</body>
+
+</html>
