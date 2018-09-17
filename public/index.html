@@ -10,8 +10,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/meyer-reset/2.0/reset.min.css">
     <link rel="stylesheet" type="text/css" href="/css/style.css" />
     <script src="https://cdn.jsdelivr.net/npm/vue@2.5.17/dist/vue.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/vue-scrollto"></script>
-
 </head>
 
 <body>
@@ -65,7 +63,6 @@
 
 
     <script>
-        Vue.use(VueScrollTo);
         Vue.filter('disabled', function(val) {
             return val ? 'disabled' : ''
         });
@@ -96,10 +93,7 @@
 
             },
             updated() {
-                // var container = this.$el.querySelector("#bottom");
-                // container.scrollTop = container.scrollHeight;
-                // var div = document.getElementById("#bottom");
-                // div.scrollTop = div.scrollHeight - div.clientHeight;
+
             },
             methods: {
                 addNick() {
@@ -115,10 +109,6 @@
                     sendData = JSON.stringify(sendData);
                     this.ws.send(sendData);
                     this.newMessage = '';
-
-                    var div = document.getElementById('chat');
-                    console.log(div.scrollHeight, ' | ', div.clientHeight)
-                    div.scrollTo = div.scrollHeight - div.clientHeight;
                 },
                 messageHandler(message) {
                     try {
